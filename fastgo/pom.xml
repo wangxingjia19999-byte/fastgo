@@ -58,6 +58,7 @@
       <artifactId>mysql-connector-j</artifactId>
       <version>8.3.0</version>
     </dependency>
+    <!-- Swing 是JDK自带的GUI库，无需额外依赖，直接import javax.swing.* 即可 -->
   </dependencies>
 
   <build>
