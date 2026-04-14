@@ -1,5 +1,7 @@
 package com.example;
 
+import org.apache.ibatis.annotations.Select;
+
 public class User {
     private int id;
     private String name;
@@ -8,6 +10,11 @@ public class User {
     private java.sql.Timestamp createTime;
     private java.sql.Timestamp updateTime;
 
+    @Select("SELECT id FROM test WHERE id=#{id}")
+    public User selectById(int id) {
+        return null; // 这里的实现会被MyBatis自动生成
+    }
+    
     public int getId() {
         return id;
     }

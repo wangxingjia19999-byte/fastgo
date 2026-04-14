@@ -21,4 +21,7 @@
       <delete id="delete" parameterType="int">
         DELETE FROM test WHERE id=#{id}
       </delete>
+      <select id="selectById" parameterType="int" resultType="com.example.User">
+        SELECT id FROM test WHERE id=#{id}
+      </select>
 </mapper>
