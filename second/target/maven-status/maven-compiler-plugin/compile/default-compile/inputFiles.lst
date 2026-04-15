@@ -1,0 +1,10 @@
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/App.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/controller/GoodsController.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/controller/MessageController.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/mapper/CategoryMapper.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/mapper/GoodsMapper.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/mapper/MessageMapper.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/pojo/Category.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/pojo/Goods.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/pojo/Message.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/service/GoodsService.java
