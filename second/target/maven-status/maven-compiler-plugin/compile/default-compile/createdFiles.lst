@@ -1,0 +1,12 @@
+com/market/controller/GoodsController.class
+com/market/controller/CategoryController.class
+com/market/controller/MessageController.class
+com/market/pojo/Message.class
+com/market/pojo/Category.class
+com/market/mapper/GoodsMapper.class
+com/market/service/GoodsService.class
+com/market/mapper/CategoryMapper.class
+com/market/pojo/Goods.class
+com/market/config/CorsConfig.class
+com/market/mapper/MessageMapper.class
+com/market/App.class

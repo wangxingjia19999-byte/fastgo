@@ -13,7 +13,10 @@ public class GoodsController {
     private GoodsService goodsService;
 
     @GetMapping
-    public List<Goods> list() {
+    public List<Goods> list(@RequestParam(required = false) String categoryId) {
+        if (categoryId != null && !categoryId.isBlank()) {
+            return goodsService.listGoodsByCategoryId(categoryId);
+        }
         return goodsService.listGoods();
     }
 
@@ -29,7 +32,7 @@ public class GoodsController {
 
     @PutMapping("/{id}")
     public void update(@PathVariable int id, @RequestBody Goods goods) {
-        // accept a full Goods JSON (including id) or ignore path id
+        goods.setId(id);
         goodsService.updateGoods(goods);
     }
 

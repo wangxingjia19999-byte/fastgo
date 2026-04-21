@@ -15,6 +15,10 @@ public class GoodsService {
         return goodsMapper.listGoods();
     }
 
+    public List<Goods> listGoodsByCategoryId(String categoryId) {
+        return goodsMapper.listGoodsByCategoryId(categoryId);
+    }
+
     public Goods getGoodsById(int id) {
         return goodsMapper.getGoodsById(id);
     }

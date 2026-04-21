@@ -13,7 +13,10 @@ public class MessageController {
     private MessageMapper messageMapper;
 
     @GetMapping
-    public List<Message> list() {
+    public List<Message> list(@RequestParam(required = false) String goodsId) {
+        if (goodsId != null && !goodsId.isBlank()) {
+            return messageMapper.getMessageByGoodsId(goodsId);
+        }
         return messageMapper.listMessages();
     }
 
@@ -25,5 +28,16 @@ public class MessageController {
     @PostMapping
     public void create(@RequestBody Message message) {
         messageMapper.insertMessage(message);
+    }
+
+    @PutMapping("/{id}")
+    public void update(@PathVariable Integer id, @RequestBody Message message) {
+        message.setId(id);
+        messageMapper.updateMessage(message);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        messageMapper.deleteMessage(id);
     }
 }

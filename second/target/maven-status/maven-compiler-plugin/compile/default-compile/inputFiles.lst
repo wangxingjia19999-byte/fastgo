@@ -1,4 +1,6 @@
 /Users/wangxingjia/code/shujuku/second/src/main/java/com/market/App.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/config/CorsConfig.java
+/Users/wangxingjia/code/shujuku/second/src/main/java/com/market/controller/CategoryController.java
 /Users/wangxingjia/code/shujuku/second/src/main/java/com/market/controller/GoodsController.java
 /Users/wangxingjia/code/shujuku/second/src/main/java/com/market/controller/MessageController.java
 /Users/wangxingjia/code/shujuku/second/src/main/java/com/market/mapper/CategoryMapper.java

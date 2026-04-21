@@ -1,0 +1,36 @@
+CREATE DATABASE IF NOT EXISTS fastgo DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE fastgo;
+
+CREATE TABLE IF NOT EXISTS category (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS goods (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  description VARCHAR(1000),
+  phone_num VARCHAR(100),
+  cid VARCHAR(50),
+  owner VARCHAR(100),
+  `condition` VARCHAR(50),
+  created_at VARCHAR(30)
+);
+
+CREATE TABLE IF NOT EXISTS message (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  content VARCHAR(1000) NOT NULL,
+  goods_id VARCHAR(50),
+  type VARCHAR(50),
+  author VARCHAR(100),
+  time VARCHAR(50)
+);
+
+INSERT INTO category(name)
+SELECT * FROM (
+  SELECT '教材书籍' AS name UNION ALL
+  SELECT '数码配件' UNION ALL
+  SELECT '生活用品'
+) AS t
+WHERE NOT EXISTS (SELECT 1 FROM category);

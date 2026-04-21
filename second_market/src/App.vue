@@ -1,46 +1,9 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
-const categories = ref([
-  { id: 1, name: '教材书籍' },
-  { id: 2, name: '数码配件' },
-  { id: 3, name: '生活用品' }
-])
-
-const products = ref([
-  {
-    id: 1,
-    title: '高等数学（同济第七版）',
-    price: 25,
-    categoryId: 1,
-    condition: '8成新',
-    owner: '李同学',
-    contact: '微信: li_study01',
-    description: '有少量笔记，期末复习够用。',
-    createdAt: '2026-04-10'
-  },
-  {
-    id: 2,
-    title: '机械键盘 87 键（青轴）',
-    price: 88,
-    categoryId: 2,
-    condition: '9成新',
-    owner: '王同学',
-    contact: 'QQ: 30214567',
-    description: '灯效正常，送一根备用数据线。',
-    createdAt: '2026-04-11'
-  }
-])
-
-const records = ref([
-  {
-    id: 1,
-    type: '留言',
-    content: '求一本离散数学教材，价格 30 以内。',
-    author: '赵同学',
-    time: '2026-04-12 19:30'
-  }
-])
+const categories = ref([])
+const products = ref([])
+const records = ref([])
 
 const activeCategory = ref('all')
 const categoryInput = ref('')
@@ -74,13 +37,57 @@ const currentModeText = computed(() =>
 const productCount = computed(() => products.value.length)
 const categoryCount = computed(() => categories.value.length)
 
-const filteredProducts = computed(() => {
-  if (activeCategory.value === 'all') return products.value
-  return products.value.filter((p) => p.categoryId === Number(activeCategory.value))
-})
-
 const getCategoryName = (categoryId) => {
   return categories.value.find((c) => c.id === categoryId)?.name || '未分类'
+}
+
+const request = async (url, options = {}) => {
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  })
+  if (!response.ok) {
+    throw new Error(`请求失败: ${response.status}`)
+  }
+  if (response.status === 204) return null
+  const text = await response.text()
+  return text ? JSON.parse(text) : null
+}
+
+const loadCategories = async () => {
+  const data = await request('/api/categories')
+  categories.value = Array.isArray(data) ? data : []
+  if (activeCategory.value !== 'all') {
+    const current = Number(activeCategory.value)
+    if (!categories.value.some((item) => item.id === current)) {
+      activeCategory.value = 'all'
+    }
+  }
+  if (!categories.value.some((item) => item.id === Number(productForm.categoryId))) {
+    productForm.categoryId = categories.value[0]?.id || 1
+  }
+}
+
+const loadProducts = async () => {
+  const url = activeCategory.value === 'all'
+    ? '/api/goods'
+    : `/api/goods?categoryId=${encodeURIComponent(activeCategory.value)}`
+  const data = await request(url)
+  products.value = Array.isArray(data) ? data : []
+}
+
+const loadRecords = async () => {
+  const data = await request('/api/messages')
+  records.value = Array.isArray(data) ? data : []
+}
+
+const loadAll = async () => {
+  try {
+    await Promise.all([loadCategories(), loadProducts(), loadRecords()])
+  } catch (error) {
+    console.error(error)
+    alert('后端连接失败，请确认后端已启动并且数据库可访问。')
+  }
 }
 
 const resetProductForm = () => {
@@ -98,6 +105,7 @@ const submitProduct = () => {
   if (!productForm.title.trim() || !productForm.owner.trim()) return
 
   const payload = {
+    id: editingProductId.value,
     title: productForm.title.trim(),
     price: Number(productForm.price) || 0,
     categoryId: Number(productForm.categoryId),
@@ -108,18 +116,27 @@ const submitProduct = () => {
     createdAt: new Date().toISOString().slice(0, 10)
   }
 
-  if (editingProductId.value) {
-    products.value = products.value.map((item) =>
-      item.id === editingProductId.value ? { ...item, ...payload } : item
-    )
-  } else {
-    products.value.unshift({
-      id: Date.now(),
-      ...payload
-    })
+  const run = async () => {
+    try {
+      if (editingProductId.value) {
+        await request(`/api/goods/${editingProductId.value}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        })
+      } else {
+        await request('/api/goods', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        })
+      }
+      await loadProducts()
+      resetProductForm()
+    } catch (error) {
+      console.error(error)
+      alert('商品保存失败')
+    }
   }
-
-  resetProductForm()
+  run()
 }
 
 const editProduct = (product) => {
@@ -134,20 +151,38 @@ const editProduct = (product) => {
 }
 
 const deleteProduct = (id) => {
-  products.value = products.value.filter((item) => item.id !== id)
-  if (editingProductId.value === id) {
-    resetProductForm()
+  const run = async () => {
+    try {
+      await request(`/api/goods/${id}`, { method: 'DELETE' })
+      await loadProducts()
+      if (editingProductId.value === id) {
+        resetProductForm()
+      }
+    } catch (error) {
+      console.error(error)
+      alert('商品删除失败')
+    }
   }
+  run()
 }
 
 const addCategory = () => {
   const name = categoryInput.value.trim()
   if (!name) return
-  categories.value.push({
-    id: Date.now(),
-    name
-  })
-  categoryInput.value = ''
+  const run = async () => {
+    try {
+      await request('/api/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name })
+      })
+      categoryInput.value = ''
+      await loadCategories()
+    } catch (error) {
+      console.error(error)
+      alert('分类新增失败')
+    }
+  }
+  run()
 }
 
 const startEditCategory = (category) => {
@@ -158,44 +193,73 @@ const startEditCategory = (category) => {
 const saveCategory = (id) => {
   const name = editingCategoryName.value.trim()
   if (!name) return
-  categories.value = categories.value.map((item) =>
-    item.id === id ? { ...item, name } : item
-  )
-  editingCategoryId.value = null
-  editingCategoryName.value = ''
+  const run = async () => {
+    try {
+      await request(`/api/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ id, name })
+      })
+      editingCategoryId.value = null
+      editingCategoryName.value = ''
+      await loadCategories()
+    } catch (error) {
+      console.error(error)
+      alert('分类更新失败')
+    }
+  }
+  run()
 }
 
 const deleteCategory = (id) => {
-  const used = products.value.some((item) => item.categoryId === id)
-  if (used) return
-  categories.value = categories.value.filter((item) => item.id !== id)
-  if (Number(activeCategory.value) === id) {
-    activeCategory.value = 'all'
+  const run = async () => {
+    try {
+      await request(`/api/categories/${id}`, { method: 'DELETE' })
+      await loadCategories()
+      if (Number(activeCategory.value) === id) {
+        activeCategory.value = 'all'
+      }
+      await loadProducts()
+    } catch (error) {
+      console.error(error)
+      alert('分类删除失败')
+    }
   }
+  run()
 }
 
 const submitRecord = () => {
   if (!recordForm.content.trim() || !recordForm.author.trim()) return
 
   const payload = {
+    id: editingRecordId.value,
     type: recordForm.type,
     content: recordForm.content.trim(),
     author: recordForm.author.trim(),
+    goodsId: null,
     time: new Date().toLocaleString('zh-CN', { hour12: false })
   }
 
-  if (editingRecordId.value) {
-    records.value = records.value.map((item) =>
-      item.id === editingRecordId.value ? { ...item, ...payload } : item
-    )
-  } else {
-    records.value.unshift({
-      id: Date.now(),
-      ...payload
-    })
+  const run = async () => {
+    try {
+      if (editingRecordId.value) {
+        await request(`/api/messages/${editingRecordId.value}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        })
+      } else {
+        await request('/api/messages', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        })
+      }
+      await loadRecords()
+      resetRecordForm()
+    } catch (error) {
+      console.error(error)
+      alert('记录保存失败')
+    }
   }
-
-  resetRecordForm()
+  run()
 }
 
 const editRecord = (record) => {
@@ -213,11 +277,28 @@ const resetRecordForm = () => {
 }
 
 const deleteRecord = (id) => {
-  records.value = records.value.filter((item) => item.id !== id)
-  if (editingRecordId.value === id) {
-    resetRecordForm()
+  const run = async () => {
+    try {
+      await request(`/api/messages/${id}`, { method: 'DELETE' })
+      await loadRecords()
+      if (editingRecordId.value === id) {
+        resetRecordForm()
+      }
+    } catch (error) {
+      console.error(error)
+      alert('记录删除失败')
+    }
   }
+  run()
 }
+
+onMounted(() => {
+  loadAll()
+})
+
+watch(activeCategory, () => {
+  loadProducts()
+})
 </script>
 
 <template>
@@ -327,7 +408,7 @@ const deleteRecord = (id) => {
 
         <div class="section-title">商品列表</div>
         <div class="product-grid">
-          <article v-for="item in filteredProducts" :key="item.id" class="card">
+          <article v-for="item in products" :key="item.id" class="card">
             <p class="card-tag">{{ getCategoryName(item.categoryId) }}</p>
             <h3>{{ item.title }}</h3>
             <p class="price">¥ {{ item.price }}</p>
@@ -339,7 +420,7 @@ const deleteRecord = (id) => {
             </div>
           </article>
 
-          <div v-if="filteredProducts.length === 0" class="empty">
+          <div v-if="products.length === 0" class="empty">
             当前分类暂无商品，试试新增一条。
           </div>
         </div>
